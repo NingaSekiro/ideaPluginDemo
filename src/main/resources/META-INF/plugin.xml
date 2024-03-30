@@ -26,6 +26,9 @@
     <extensions defaultExtensionNs="com.intellij">
 
     </extensions>
+    <depends>com.intellij.modules.platform</depends>
+    <depends>com.intellij.modules.lang</depends>
+    <depends>com.intellij.modules.java</depends>
     <actions>
         <action id="Converter" class="org.example.demo.ConverterAction" text="Converter" description="Converter">
             <add-to-group group-id="EditorPopupMenu" anchor="first"/>

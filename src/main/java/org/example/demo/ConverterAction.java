@@ -3,24 +3,43 @@ package org.example.demo;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.CommonDataKeys;
-import com.intellij.openapi.actionSystem.PlatformDataKeys;
-import com.intellij.openapi.editor.Editor;
-import com.intellij.openapi.editor.SelectionModel;
-import com.intellij.openapi.project.Project;
-import com.intellij.psi.PsiElement;
-import com.intellij.psi.PsiFile;
-import com.intellij.psi.util.PsiTreeUtil;
-import com.intellij.psi.util.PsiUtilBase;
+import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.command.WriteCommandAction;
+import com.intellij.psi.*;
+import com.intellij.psi.search.GlobalSearchScope;
+import org.jetbrains.annotations.NotNull;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class ConverterAction extends AnAction {
-
     @Override
     public void actionPerformed(AnActionEvent e) {
-        // 获取当前项目
-        Project project = e.getData(PlatformDataKeys.PROJECT);
-        // 获取当前文件
-        PsiFile psiFile = PsiUtilBase.getPsiFileInEditor(e.getData(PlatformDataKeys.EDITOR), project);
-        // 创建并注册访问器
-        psiFile.accept(new MyFieldVisitor());
+        PsiFile psiFile = e.getData(CommonDataKeys.PSI_FILE);
+        assert psiFile != null;
+        WriteCommandAction.runWriteCommandAction(psiFile.getProject(), () -> {
+            List<PsiField> fieldsToReplace = new ArrayList<>();
+
+            psiFile.accept(new JavaRecursiveElementVisitor() {
+                @Override
+                public void visitField(@NotNull PsiField field) {
+                    fieldsToReplace.add(field);
+                }
+            });
+
+
+
+            PsiElementFactory elementFactory = JavaPsiFacade.getElementFactory(psiFile.getProject());
+            for (PsiField field : fieldsToReplace) {
+                field.setName(field.getName().toUpperCase());
+            }
+        });
+
+//        psiFile.accept(new JavaRecursiveElementVisitor() {
+//            @Override
+//            public void visitField(@NotNull PsiField field) {
+//                System.out.println(field.getName());
+//            }
+//        });
     }
 }
